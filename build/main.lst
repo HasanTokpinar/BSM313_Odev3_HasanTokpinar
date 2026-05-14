@@ -1,0 +1,1749 @@
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 1
+
+
+   1              		.cpu cortex-m3
+   2              		.arch armv7-m
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"main.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.file 1 "Core/Src/main.c"
+  18              		.section	.text.MX_GPIO_Init,"ax",%progbits
+  19              		.align	1
+  20              		.syntax unified
+  21              		.thumb
+  22              		.thumb_func
+  24              	MX_GPIO_Init:
+  25              	.LFB70:
+   1:Core/Src/main.c **** /* USER CODE BEGIN Header */
+   2:Core/Src/main.c **** /**
+   3:Core/Src/main.c ****   ******************************************************************************
+   4:Core/Src/main.c ****   * @file           : main.c
+   5:Core/Src/main.c ****   * @brief          : Main program body
+   6:Core/Src/main.c ****   ******************************************************************************
+   7:Core/Src/main.c ****   * @attention
+   8:Core/Src/main.c ****   *
+   9:Core/Src/main.c ****   * Copyright (c) 2026 STMicroelectronics.
+  10:Core/Src/main.c ****   * All rights reserved.
+  11:Core/Src/main.c ****   *
+  12:Core/Src/main.c ****   * This software is licensed under terms that can be found in the LICENSE file
+  13:Core/Src/main.c ****   * in the root directory of this software component.
+  14:Core/Src/main.c ****   * If no LICENSE file comes with this software, it is provided AS-IS.
+  15:Core/Src/main.c ****   *
+  16:Core/Src/main.c ****   ******************************************************************************
+  17:Core/Src/main.c ****   */
+  18:Core/Src/main.c **** /* USER CODE END Header */
+  19:Core/Src/main.c **** /* Includes ------------------------------------------------------------------*/
+  20:Core/Src/main.c **** #include "main.h"
+  21:Core/Src/main.c **** 
+  22:Core/Src/main.c **** /* Private includes ----------------------------------------------------------*/
+  23:Core/Src/main.c **** /* USER CODE BEGIN Includes */
+  24:Core/Src/main.c **** 
+  25:Core/Src/main.c **** /* USER CODE END Includes */
+  26:Core/Src/main.c **** 
+  27:Core/Src/main.c **** /* Private typedef -----------------------------------------------------------*/
+  28:Core/Src/main.c **** /* USER CODE BEGIN PTD */
+  29:Core/Src/main.c **** 
+  30:Core/Src/main.c **** /* USER CODE END PTD */
+  31:Core/Src/main.c **** 
+  32:Core/Src/main.c **** /* Private define ------------------------------------------------------------*/
+  33:Core/Src/main.c **** /* USER CODE BEGIN PD */
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 2
+
+
+  34:Core/Src/main.c **** 
+  35:Core/Src/main.c **** /* USER CODE END PD */
+  36:Core/Src/main.c **** 
+  37:Core/Src/main.c **** /* Private macro -------------------------------------------------------------*/
+  38:Core/Src/main.c **** /* USER CODE BEGIN PM */
+  39:Core/Src/main.c **** 
+  40:Core/Src/main.c **** /* USER CODE END PM */
+  41:Core/Src/main.c **** 
+  42:Core/Src/main.c **** /* Private variables ---------------------------------------------------------*/
+  43:Core/Src/main.c **** TIM_HandleTypeDef htim2;
+  44:Core/Src/main.c **** 
+  45:Core/Src/main.c **** /* USER CODE BEGIN PV */
+  46:Core/Src/main.c **** 
+  47:Core/Src/main.c **** volatile uint32_t blink_count = 4;
+  48:Core/Src/main.c **** volatile uint32_t toggle_count = 0; 
+  49:Core/Src/main.c **** volatile uint32_t wait_seconds = 0;
+  50:Core/Src/main.c **** volatile uint8_t state = 0; // 0: yanıp sönme aşaması, 1: 5 saniye bekleme aşaması
+  51:Core/Src/main.c **** 
+  52:Core/Src/main.c **** /* USER CODE END PV */
+  53:Core/Src/main.c **** 
+  54:Core/Src/main.c **** /* Private function prototypes -----------------------------------------------*/
+  55:Core/Src/main.c **** void SystemClock_Config(void);
+  56:Core/Src/main.c **** static void MX_GPIO_Init(void);
+  57:Core/Src/main.c **** static void MX_TIM2_Init(void);
+  58:Core/Src/main.c **** /* USER CODE BEGIN PFP */
+  59:Core/Src/main.c **** 
+  60:Core/Src/main.c **** /* USER CODE END PFP */
+  61:Core/Src/main.c **** 
+  62:Core/Src/main.c **** /* Private user code ---------------------------------------------------------*/
+  63:Core/Src/main.c **** /* USER CODE BEGIN 0 */
+  64:Core/Src/main.c **** #define FLASH_USER_START_ADDR   0x0800FC00 // Çipin son sayfası (Güvenli bölge)
+  65:Core/Src/main.c **** 
+  66:Core/Src/main.c **** void Save_To_Flash(uint32_t data) {
+  67:Core/Src/main.c ****     HAL_FLASH_Unlock();
+  68:Core/Src/main.c ****     FLASH_EraseInitTypeDef EraseInitStruct;
+  69:Core/Src/main.c ****     uint32_t PAGEError = 0;
+  70:Core/Src/main.c ****     EraseInitStruct.TypeErase   = FLASH_TYPEERASE_PAGES;
+  71:Core/Src/main.c ****     EraseInitStruct.PageAddress = FLASH_USER_START_ADDR;
+  72:Core/Src/main.c ****     EraseInitStruct.NbPages     = 1;
+  73:Core/Src/main.c **** 
+  74:Core/Src/main.c ****     HAL_FLASHEx_Erase(&EraseInitStruct, &PAGEError);
+  75:Core/Src/main.c ****     HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, FLASH_USER_START_ADDR, data);
+  76:Core/Src/main.c ****     HAL_FLASH_Lock();
+  77:Core/Src/main.c **** }
+  78:Core/Src/main.c **** 
+  79:Core/Src/main.c **** uint32_t Read_From_Flash(void) {
+  80:Core/Src/main.c ****     return *(__IO uint32_t *)FLASH_USER_START_ADDR;
+  81:Core/Src/main.c **** }
+  82:Core/Src/main.c **** /* USER CODE END 0 */
+  83:Core/Src/main.c **** 
+  84:Core/Src/main.c **** /**
+  85:Core/Src/main.c ****   * @brief  The application entry point.
+  86:Core/Src/main.c ****   * @retval int
+  87:Core/Src/main.c ****   */
+  88:Core/Src/main.c **** int main(void)
+  89:Core/Src/main.c **** {
+  90:Core/Src/main.c **** 
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 3
+
+
+  91:Core/Src/main.c ****   /* USER CODE BEGIN 1 */
+  92:Core/Src/main.c **** 
+  93:Core/Src/main.c ****   /* USER CODE END 1 */
+  94:Core/Src/main.c **** 
+  95:Core/Src/main.c ****   /* MCU Configuration--------------------------------------------------------*/
+  96:Core/Src/main.c **** 
+  97:Core/Src/main.c ****   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  98:Core/Src/main.c ****   HAL_Init();
+  99:Core/Src/main.c **** 
+ 100:Core/Src/main.c ****   /* USER CODE BEGIN Init */
+ 101:Core/Src/main.c **** 
+ 102:Core/Src/main.c ****   /* USER CODE END Init */
+ 103:Core/Src/main.c **** 
+ 104:Core/Src/main.c ****   /* Configure the system clock */
+ 105:Core/Src/main.c ****   SystemClock_Config();
+ 106:Core/Src/main.c **** 
+ 107:Core/Src/main.c ****   /* USER CODE BEGIN SysInit */
+ 108:Core/Src/main.c **** 
+ 109:Core/Src/main.c ****   /* USER CODE END SysInit */
+ 110:Core/Src/main.c **** 
+ 111:Core/Src/main.c ****   /* Initialize all configured peripherals */
+ 112:Core/Src/main.c ****   MX_GPIO_Init();
+ 113:Core/Src/main.c ****   MX_TIM2_Init();
+ 114:Core/Src/main.c ****   /* USER CODE BEGIN 2 */
+ 115:Core/Src/main.c ****   // Cihaz açıldığında Flash'tan değeri oku
+ 116:Core/Src/main.c ****   uint32_t flash_val = Read_From_Flash();
+ 117:Core/Src/main.c **** 
+ 118:Core/Src/main.c ****   // Sistem açılışında butona basılı tutuluyor mu kontrolü (Fabrika ayarlarına dönüş)
+ 119:Core/Src/main.c ****   if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_RESET) {
+ 120:Core/Src/main.c ****       uint32_t start_time = HAL_GetTick();
+ 121:Core/Src/main.c ****       uint8_t factory_reset = 0;
+ 122:Core/Src/main.c ****       
+ 123:Core/Src/main.c ****       // Buton basılı olduğu sürece bekle
+ 124:Core/Src/main.c ****       while (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_RESET) {
+ 125:Core/Src/main.c ****           if (HAL_GetTick() - start_time >= 3000) { // 3 saniye dolduysa
+ 126:Core/Src/main.c ****               blink_count = 4;
+ 127:Core/Src/main.c ****               Save_To_Flash(blink_count);
+ 128:Core/Src/main.c ****               factory_reset = 1;
+ 129:Core/Src/main.c ****               break; // 3 saniye dolunca döngüden çık
+ 130:Core/Src/main.c ****           }
+ 131:Core/Src/main.c ****       }
+ 132:Core/Src/main.c ****       
+ 133:Core/Src/main.c ****       // Kullanıcı butonu bırakana kadar programı beklet
+ 134:Core/Src/main.c ****       while (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_RESET);
+ 135:Core/Src/main.c ****       
+ 136:Core/Src/main.c ****       // Eğer 3 saniyeden az basıldıysa normal başlatma işlemine devam et
+ 137:Core/Src/main.c ****       if (!factory_reset) {
+ 138:Core/Src/main.c ****           if (flash_val > 7 || flash_val < 4) {
+ 139:Core/Src/main.c ****               blink_count = 4;
+ 140:Core/Src/main.c ****               Save_To_Flash(blink_count);
+ 141:Core/Src/main.c ****           } else {
+ 142:Core/Src/main.c ****               blink_count = flash_val;
+ 143:Core/Src/main.c ****           }
+ 144:Core/Src/main.c ****       }
+ 145:Core/Src/main.c ****   } else {
+ 146:Core/Src/main.c ****       // Cihaz açılırken butona basılmamışsa normal şekilde devam et
+ 147:Core/Src/main.c ****       if (flash_val > 7 || flash_val < 4) {
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 4
+
+
+ 148:Core/Src/main.c ****           blink_count = 4;
+ 149:Core/Src/main.c ****           Save_To_Flash(blink_count);
+ 150:Core/Src/main.c ****       } else {
+ 151:Core/Src/main.c ****           blink_count = flash_val;
+ 152:Core/Src/main.c ****       }
+ 153:Core/Src/main.c ****   }
+ 154:Core/Src/main.c **** 
+ 155:Core/Src/main.c ****   // Timer 2 kesmesini başlat
+ 156:Core/Src/main.c ****   HAL_TIM_Base_Start_IT(&htim2);
+ 157:Core/Src/main.c **** /* USER CODE END 2 */
+ 158:Core/Src/main.c **** 
+ 159:Core/Src/main.c ****   /* Infinite loop */
+ 160:Core/Src/main.c ****   /* USER CODE BEGIN WHILE */
+ 161:Core/Src/main.c ****   while (1)
+ 162:Core/Src/main.c ****   {
+ 163:Core/Src/main.c ****     /* USER CODE END WHILE */
+ 164:Core/Src/main.c **** 
+ 165:Core/Src/main.c ****     /* USER CODE BEGIN 3 */
+ 166:Core/Src/main.c ****     if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_RESET) { 
+ 167:Core/Src/main.c ****         HAL_Delay(50); // Dalgalanmayı önlemek için Debounce
+ 168:Core/Src/main.c ****         
+ 169:Core/Src/main.c ****         if (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_RESET) {
+ 170:Core/Src/main.c ****             
+ 171:Core/Src/main.c ****             // Kullanıcı butonu (veya switch'i) bırakana kadar bekle
+ 172:Core/Src/main.c ****             while (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_RESET);
+ 173:Core/Src/main.c ****             
+ 174:Core/Src/main.c ****             blink_count++;
+ 175:Core/Src/main.c ****             if (blink_count > 7) blink_count = 4;
+ 176:Core/Src/main.c ****             Save_To_Flash(blink_count);
+ 177:Core/Src/main.c ****             
+ 178:Core/Src/main.c ****             // Yeni değerin hemen tepki vermesi için sayacı sıfırla
+ 179:Core/Src/main.c ****             toggle_count = 0;
+ 180:Core/Src/main.c ****             wait_seconds = 0;
+ 181:Core/Src/main.c ****             state = 0;
+ 182:Core/Src/main.c ****             HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET); // LED'i söndür
+ 183:Core/Src/main.c ****         }
+ 184:Core/Src/main.c ****     }
+ 185:Core/Src/main.c **** /* USER CODE END 3 */
+ 186:Core/Src/main.c **** }
+ 187:Core/Src/main.c **** }
+ 188:Core/Src/main.c **** 
+ 189:Core/Src/main.c **** /**
+ 190:Core/Src/main.c ****   * @brief System Clock Configuration
+ 191:Core/Src/main.c ****   * @retval None
+ 192:Core/Src/main.c ****   */
+ 193:Core/Src/main.c **** void SystemClock_Config(void)
+ 194:Core/Src/main.c **** {
+ 195:Core/Src/main.c ****   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+ 196:Core/Src/main.c ****   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+ 197:Core/Src/main.c **** 
+ 198:Core/Src/main.c ****   /** Initializes the RCC Oscillators according to the specified parameters
+ 199:Core/Src/main.c ****   * in the RCC_OscInitTypeDef structure.
+ 200:Core/Src/main.c ****   */
+ 201:Core/Src/main.c ****   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+ 202:Core/Src/main.c ****   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+ 203:Core/Src/main.c ****   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+ 204:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 5
+
+
+ 205:Core/Src/main.c ****   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+ 206:Core/Src/main.c ****   {
+ 207:Core/Src/main.c ****     Error_Handler();
+ 208:Core/Src/main.c ****   }
+ 209:Core/Src/main.c **** 
+ 210:Core/Src/main.c ****   /** Initializes the CPU, AHB and APB buses clocks
+ 211:Core/Src/main.c ****   */
+ 212:Core/Src/main.c ****   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+ 213:Core/Src/main.c ****                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+ 214:Core/Src/main.c ****   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+ 215:Core/Src/main.c ****   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+ 216:Core/Src/main.c ****   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+ 217:Core/Src/main.c ****   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+ 218:Core/Src/main.c **** 
+ 219:Core/Src/main.c ****   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+ 220:Core/Src/main.c ****   {
+ 221:Core/Src/main.c ****     Error_Handler();
+ 222:Core/Src/main.c ****   }
+ 223:Core/Src/main.c **** }
+ 224:Core/Src/main.c **** 
+ 225:Core/Src/main.c **** /**
+ 226:Core/Src/main.c ****   * @brief TIM2 Initialization Function
+ 227:Core/Src/main.c ****   * @param None
+ 228:Core/Src/main.c ****   * @retval None
+ 229:Core/Src/main.c ****   */
+ 230:Core/Src/main.c **** static void MX_TIM2_Init(void)
+ 231:Core/Src/main.c **** {
+ 232:Core/Src/main.c **** 
+ 233:Core/Src/main.c ****   /* USER CODE BEGIN TIM2_Init 0 */
+ 234:Core/Src/main.c **** 
+ 235:Core/Src/main.c ****   /* USER CODE END TIM2_Init 0 */
+ 236:Core/Src/main.c **** 
+ 237:Core/Src/main.c ****   TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+ 238:Core/Src/main.c ****   TIM_MasterConfigTypeDef sMasterConfig = {0};
+ 239:Core/Src/main.c **** 
+ 240:Core/Src/main.c ****   /* USER CODE BEGIN TIM2_Init 1 */
+ 241:Core/Src/main.c **** 
+ 242:Core/Src/main.c ****   /* USER CODE END TIM2_Init 1 */
+ 243:Core/Src/main.c ****   htim2.Instance = TIM2;
+ 244:Core/Src/main.c ****   htim2.Init.Prescaler = 8000 - 1;
+ 245:Core/Src/main.c ****   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+ 246:Core/Src/main.c ****   htim2.Init.Period = 1000 - 1;
+ 247:Core/Src/main.c ****   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+ 248:Core/Src/main.c ****   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+ 249:Core/Src/main.c ****   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+ 250:Core/Src/main.c ****   {
+ 251:Core/Src/main.c ****     Error_Handler();
+ 252:Core/Src/main.c ****   }
+ 253:Core/Src/main.c ****   sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+ 254:Core/Src/main.c ****   if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+ 255:Core/Src/main.c ****   {
+ 256:Core/Src/main.c ****     Error_Handler();
+ 257:Core/Src/main.c ****   }
+ 258:Core/Src/main.c ****   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+ 259:Core/Src/main.c ****   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+ 260:Core/Src/main.c ****   if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+ 261:Core/Src/main.c ****   {
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 6
+
+
+ 262:Core/Src/main.c ****     Error_Handler();
+ 263:Core/Src/main.c ****   }
+ 264:Core/Src/main.c ****   /* USER CODE BEGIN TIM2_Init 2 */
+ 265:Core/Src/main.c **** 
+ 266:Core/Src/main.c ****   /* USER CODE END TIM2_Init 2 */
+ 267:Core/Src/main.c **** 
+ 268:Core/Src/main.c **** }
+ 269:Core/Src/main.c **** 
+ 270:Core/Src/main.c **** /**
+ 271:Core/Src/main.c ****   * @brief GPIO Initialization Function
+ 272:Core/Src/main.c ****   * @param None
+ 273:Core/Src/main.c ****   * @retval None
+ 274:Core/Src/main.c ****   */
+ 275:Core/Src/main.c **** static void MX_GPIO_Init(void)
+ 276:Core/Src/main.c **** {
+  26              		.loc 1 276 1 view -0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 24
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30 0000 2DE9F043 		push	{r4, r5, r6, r7, r8, r9, lr}
+  31              	.LCFI0:
+  32              		.cfi_def_cfa_offset 28
+  33              		.cfi_offset 4, -28
+  34              		.cfi_offset 5, -24
+  35              		.cfi_offset 6, -20
+  36              		.cfi_offset 7, -16
+  37              		.cfi_offset 8, -12
+  38              		.cfi_offset 9, -8
+  39              		.cfi_offset 14, -4
+  40 0004 87B0     		sub	sp, sp, #28
+  41              	.LCFI1:
+  42              		.cfi_def_cfa_offset 56
+ 277:Core/Src/main.c ****   GPIO_InitTypeDef GPIO_InitStruct = {0};
+  43              		.loc 1 277 3 view .LVU1
+  44              		.loc 1 277 20 is_stmt 0 view .LVU2
+  45 0006 02AD     		add	r5, sp, #8
+  46 0008 0024     		movs	r4, #0
+  47 000a 0294     		str	r4, [sp, #8]
+  48 000c 0394     		str	r4, [sp, #12]
+  49 000e 0494     		str	r4, [sp, #16]
+  50 0010 0594     		str	r4, [sp, #20]
+ 278:Core/Src/main.c ****   /* USER CODE BEGIN MX_GPIO_Init_1 */
+ 279:Core/Src/main.c **** 
+ 280:Core/Src/main.c ****   /* USER CODE END MX_GPIO_Init_1 */
+ 281:Core/Src/main.c **** 
+ 282:Core/Src/main.c ****   /* GPIO Ports Clock Enable */
+ 283:Core/Src/main.c ****   __HAL_RCC_GPIOC_CLK_ENABLE();
+  51              		.loc 1 283 3 is_stmt 1 view .LVU3
+  52              	.LBB4:
+  53              		.loc 1 283 3 view .LVU4
+  54              		.loc 1 283 3 view .LVU5
+  55 0012 214B     		ldr	r3, .L3
+  56 0014 9A69     		ldr	r2, [r3, #24]
+  57 0016 42F01002 		orr	r2, r2, #16
+  58 001a 9A61     		str	r2, [r3, #24]
+  59              		.loc 1 283 3 view .LVU6
+  60 001c 9A69     		ldr	r2, [r3, #24]
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 7
+
+
+  61 001e 02F01002 		and	r2, r2, #16
+  62 0022 0092     		str	r2, [sp]
+  63              		.loc 1 283 3 view .LVU7
+  64 0024 009A     		ldr	r2, [sp]
+  65              	.LBE4:
+  66              		.loc 1 283 3 view .LVU8
+ 284:Core/Src/main.c ****   __HAL_RCC_GPIOA_CLK_ENABLE();
+  67              		.loc 1 284 3 view .LVU9
+  68              	.LBB5:
+  69              		.loc 1 284 3 view .LVU10
+  70              		.loc 1 284 3 view .LVU11
+  71 0026 9A69     		ldr	r2, [r3, #24]
+  72 0028 42F00402 		orr	r2, r2, #4
+  73 002c 9A61     		str	r2, [r3, #24]
+  74              		.loc 1 284 3 view .LVU12
+  75 002e 9B69     		ldr	r3, [r3, #24]
+  76 0030 03F00403 		and	r3, r3, #4
+  77 0034 0193     		str	r3, [sp, #4]
+  78              		.loc 1 284 3 view .LVU13
+  79 0036 019B     		ldr	r3, [sp, #4]
+  80              	.LBE5:
+  81              		.loc 1 284 3 view .LVU14
+ 285:Core/Src/main.c **** 
+ 286:Core/Src/main.c ****   /*Configure GPIO pin Output Level */
+ 287:Core/Src/main.c ****   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+  82              		.loc 1 287 3 view .LVU15
+  83 0038 DFF86090 		ldr	r9, .L3+4
+  84 003c 2246     		mov	r2, r4
+  85 003e 4FF40051 		mov	r1, #8192
+  86 0042 4846     		mov	r0, r9
+  87 0044 FFF7FEFF 		bl	HAL_GPIO_WritePin
+  88              	.LVL0:
+ 288:Core/Src/main.c **** 
+ 289:Core/Src/main.c ****   /*Configure GPIO pin Output Level */
+ 290:Core/Src/main.c ****   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET);
+  89              		.loc 1 290 3 view .LVU16
+  90 0048 154F     		ldr	r7, .L3+8
+  91 004a 2246     		mov	r2, r4
+  92 004c 0221     		movs	r1, #2
+  93 004e 3846     		mov	r0, r7
+  94 0050 FFF7FEFF 		bl	HAL_GPIO_WritePin
+  95              	.LVL1:
+ 291:Core/Src/main.c **** 
+ 292:Core/Src/main.c ****   /*Configure GPIO pin : PC13 */
+ 293:Core/Src/main.c ****   GPIO_InitStruct.Pin = GPIO_PIN_13;
+  96              		.loc 1 293 3 view .LVU17
+  97              		.loc 1 293 23 is_stmt 0 view .LVU18
+  98 0054 4FF40053 		mov	r3, #8192
+  99 0058 0293     		str	r3, [sp, #8]
+ 294:Core/Src/main.c ****   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+ 100              		.loc 1 294 3 is_stmt 1 view .LVU19
+ 101              		.loc 1 294 24 is_stmt 0 view .LVU20
+ 102 005a 0126     		movs	r6, #1
+ 103 005c 0396     		str	r6, [sp, #12]
+ 295:Core/Src/main.c ****   GPIO_InitStruct.Pull = GPIO_NOPULL;
+ 104              		.loc 1 295 3 is_stmt 1 view .LVU21
+ 105              		.loc 1 295 24 is_stmt 0 view .LVU22
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 8
+
+
+ 106 005e 0494     		str	r4, [sp, #16]
+ 296:Core/Src/main.c ****   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+ 107              		.loc 1 296 3 is_stmt 1 view .LVU23
+ 108              		.loc 1 296 25 is_stmt 0 view .LVU24
+ 109 0060 4FF00208 		mov	r8, #2
+ 110 0064 CDF81480 		str	r8, [sp, #20]
+ 297:Core/Src/main.c ****   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+ 111              		.loc 1 297 3 is_stmt 1 view .LVU25
+ 112 0068 2946     		mov	r1, r5
+ 113 006a 4846     		mov	r0, r9
+ 114 006c FFF7FEFF 		bl	HAL_GPIO_Init
+ 115              	.LVL2:
+ 298:Core/Src/main.c **** 
+ 299:Core/Src/main.c ****   /*Configure GPIO pin : PA0 */
+ 300:Core/Src/main.c ****   GPIO_InitStruct.Pin = GPIO_PIN_0;
+ 116              		.loc 1 300 3 view .LVU26
+ 117              		.loc 1 300 23 is_stmt 0 view .LVU27
+ 118 0070 0296     		str	r6, [sp, #8]
+ 301:Core/Src/main.c ****   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+ 119              		.loc 1 301 3 is_stmt 1 view .LVU28
+ 120              		.loc 1 301 24 is_stmt 0 view .LVU29
+ 121 0072 0394     		str	r4, [sp, #12]
+ 302:Core/Src/main.c ****   GPIO_InitStruct.Pull = GPIO_PULLUP;
+ 122              		.loc 1 302 3 is_stmt 1 view .LVU30
+ 123              		.loc 1 302 24 is_stmt 0 view .LVU31
+ 124 0074 0496     		str	r6, [sp, #16]
+ 303:Core/Src/main.c ****   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+ 125              		.loc 1 303 3 is_stmt 1 view .LVU32
+ 126 0076 2946     		mov	r1, r5
+ 127 0078 3846     		mov	r0, r7
+ 128 007a FFF7FEFF 		bl	HAL_GPIO_Init
+ 129              	.LVL3:
+ 304:Core/Src/main.c **** 
+ 305:Core/Src/main.c ****   /*Configure GPIO pin : PA1 */
+ 306:Core/Src/main.c ****   GPIO_InitStruct.Pin = GPIO_PIN_1;
+ 130              		.loc 1 306 3 view .LVU33
+ 131              		.loc 1 306 23 is_stmt 0 view .LVU34
+ 132 007e CDF80880 		str	r8, [sp, #8]
+ 307:Core/Src/main.c ****   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+ 133              		.loc 1 307 3 is_stmt 1 view .LVU35
+ 134              		.loc 1 307 24 is_stmt 0 view .LVU36
+ 135 0082 0396     		str	r6, [sp, #12]
+ 308:Core/Src/main.c ****   GPIO_InitStruct.Pull = GPIO_NOPULL;
+ 136              		.loc 1 308 3 is_stmt 1 view .LVU37
+ 137              		.loc 1 308 24 is_stmt 0 view .LVU38
+ 138 0084 0494     		str	r4, [sp, #16]
+ 309:Core/Src/main.c ****   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+ 139              		.loc 1 309 3 is_stmt 1 view .LVU39
+ 140              		.loc 1 309 25 is_stmt 0 view .LVU40
+ 141 0086 CDF81480 		str	r8, [sp, #20]
+ 310:Core/Src/main.c ****   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+ 142              		.loc 1 310 3 is_stmt 1 view .LVU41
+ 143 008a 2946     		mov	r1, r5
+ 144 008c 3846     		mov	r0, r7
+ 145 008e FFF7FEFF 		bl	HAL_GPIO_Init
+ 146              	.LVL4:
+ 311:Core/Src/main.c **** 
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 9
+
+
+ 312:Core/Src/main.c ****   /* USER CODE BEGIN MX_GPIO_Init_2 */
+ 313:Core/Src/main.c **** 
+ 314:Core/Src/main.c ****   /* USER CODE END MX_GPIO_Init_2 */
+ 315:Core/Src/main.c **** }
+ 147              		.loc 1 315 1 is_stmt 0 view .LVU42
+ 148 0092 07B0     		add	sp, sp, #28
+ 149              	.LCFI2:
+ 150              		.cfi_def_cfa_offset 28
+ 151              		@ sp needed
+ 152 0094 BDE8F083 		pop	{r4, r5, r6, r7, r8, r9, pc}
+ 153              	.L4:
+ 154              		.align	2
+ 155              	.L3:
+ 156 0098 00100240 		.word	1073876992
+ 157 009c 00100140 		.word	1073811456
+ 158 00a0 00080140 		.word	1073809408
+ 159              		.cfi_endproc
+ 160              	.LFE70:
+ 162              		.section	.text.Save_To_Flash,"ax",%progbits
+ 163              		.align	1
+ 164              		.global	Save_To_Flash
+ 165              		.syntax unified
+ 166              		.thumb
+ 167              		.thumb_func
+ 169              	Save_To_Flash:
+ 170              	.LVL5:
+ 171              	.LFB65:
+  66:Core/Src/main.c ****     HAL_FLASH_Unlock();
+ 172              		.loc 1 66 35 is_stmt 1 view -0
+ 173              		.cfi_startproc
+ 174              		@ args = 0, pretend = 0, frame = 24
+ 175              		@ frame_needed = 0, uses_anonymous_args = 0
+  66:Core/Src/main.c ****     HAL_FLASH_Unlock();
+ 176              		.loc 1 66 35 is_stmt 0 view .LVU44
+ 177 0000 70B5     		push	{r4, r5, r6, lr}
+ 178              	.LCFI3:
+ 179              		.cfi_def_cfa_offset 16
+ 180              		.cfi_offset 4, -16
+ 181              		.cfi_offset 5, -12
+ 182              		.cfi_offset 6, -8
+ 183              		.cfi_offset 14, -4
+ 184 0002 86B0     		sub	sp, sp, #24
+ 185              	.LCFI4:
+ 186              		.cfi_def_cfa_offset 40
+ 187 0004 0546     		mov	r5, r0
+  67:Core/Src/main.c ****     FLASH_EraseInitTypeDef EraseInitStruct;
+ 188              		.loc 1 67 5 is_stmt 1 view .LVU45
+ 189 0006 FFF7FEFF 		bl	HAL_FLASH_Unlock
+ 190              	.LVL6:
+  68:Core/Src/main.c ****     uint32_t PAGEError = 0;
+ 191              		.loc 1 68 5 view .LVU46
+  69:Core/Src/main.c ****     EraseInitStruct.TypeErase   = FLASH_TYPEERASE_PAGES;
+ 192              		.loc 1 69 5 view .LVU47
+  69:Core/Src/main.c ****     EraseInitStruct.TypeErase   = FLASH_TYPEERASE_PAGES;
+ 193              		.loc 1 69 14 is_stmt 0 view .LVU48
+ 194 000a 0024     		movs	r4, #0
+ 195 000c 0194     		str	r4, [sp, #4]
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 10
+
+
+  70:Core/Src/main.c ****     EraseInitStruct.PageAddress = FLASH_USER_START_ADDR;
+ 196              		.loc 1 70 5 is_stmt 1 view .LVU49
+  70:Core/Src/main.c ****     EraseInitStruct.PageAddress = FLASH_USER_START_ADDR;
+ 197              		.loc 1 70 33 is_stmt 0 view .LVU50
+ 198 000e 0294     		str	r4, [sp, #8]
+  71:Core/Src/main.c ****     EraseInitStruct.NbPages     = 1;
+ 199              		.loc 1 71 5 is_stmt 1 view .LVU51
+  71:Core/Src/main.c ****     EraseInitStruct.NbPages     = 1;
+ 200              		.loc 1 71 33 is_stmt 0 view .LVU52
+ 201 0010 084E     		ldr	r6, .L7
+ 202 0012 0496     		str	r6, [sp, #16]
+  72:Core/Src/main.c **** 
+ 203              		.loc 1 72 5 is_stmt 1 view .LVU53
+  72:Core/Src/main.c **** 
+ 204              		.loc 1 72 33 is_stmt 0 view .LVU54
+ 205 0014 0123     		movs	r3, #1
+ 206 0016 0593     		str	r3, [sp, #20]
+  74:Core/Src/main.c ****     HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, FLASH_USER_START_ADDR, data);
+ 207              		.loc 1 74 5 is_stmt 1 view .LVU55
+ 208 0018 01A9     		add	r1, sp, #4
+ 209 001a 02A8     		add	r0, sp, #8
+ 210 001c FFF7FEFF 		bl	HAL_FLASHEx_Erase
+ 211              	.LVL7:
+  75:Core/Src/main.c ****     HAL_FLASH_Lock();
+ 212              		.loc 1 75 5 view .LVU56
+ 213 0020 2A46     		mov	r2, r5
+ 214 0022 2346     		mov	r3, r4
+ 215 0024 3146     		mov	r1, r6
+ 216 0026 0220     		movs	r0, #2
+ 217 0028 FFF7FEFF 		bl	HAL_FLASH_Program
+ 218              	.LVL8:
+  76:Core/Src/main.c **** }
+ 219              		.loc 1 76 5 view .LVU57
+ 220 002c FFF7FEFF 		bl	HAL_FLASH_Lock
+ 221              	.LVL9:
+  77:Core/Src/main.c **** 
+ 222              		.loc 1 77 1 is_stmt 0 view .LVU58
+ 223 0030 06B0     		add	sp, sp, #24
+ 224              	.LCFI5:
+ 225              		.cfi_def_cfa_offset 16
+ 226              		@ sp needed
+ 227 0032 70BD     		pop	{r4, r5, r6, pc}
+ 228              	.LVL10:
+ 229              	.L8:
+  77:Core/Src/main.c **** 
+ 230              		.loc 1 77 1 view .LVU59
+ 231              		.align	2
+ 232              	.L7:
+ 233 0034 00FC0008 		.word	134282240
+ 234              		.cfi_endproc
+ 235              	.LFE65:
+ 237              		.section	.text.Read_From_Flash,"ax",%progbits
+ 238              		.align	1
+ 239              		.global	Read_From_Flash
+ 240              		.syntax unified
+ 241              		.thumb
+ 242              		.thumb_func
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 11
+
+
+ 244              	Read_From_Flash:
+ 245              	.LFB66:
+  79:Core/Src/main.c ****     return *(__IO uint32_t *)FLASH_USER_START_ADDR;
+ 246              		.loc 1 79 32 is_stmt 1 view -0
+ 247              		.cfi_startproc
+ 248              		@ args = 0, pretend = 0, frame = 0
+ 249              		@ frame_needed = 0, uses_anonymous_args = 0
+ 250              		@ link register save eliminated.
+  80:Core/Src/main.c **** }
+ 251              		.loc 1 80 5 view .LVU61
+  80:Core/Src/main.c **** }
+ 252              		.loc 1 80 12 is_stmt 0 view .LVU62
+ 253 0000 014B     		ldr	r3, .L10
+ 254 0002 D3F8000C 		ldr	r0, [r3, #3072]
+  81:Core/Src/main.c **** /* USER CODE END 0 */
+ 255              		.loc 1 81 1 view .LVU63
+ 256 0006 7047     		bx	lr
+ 257              	.L11:
+ 258              		.align	2
+ 259              	.L10:
+ 260 0008 00F00008 		.word	134279168
+ 261              		.cfi_endproc
+ 262              	.LFE66:
+ 264              		.section	.text.HAL_TIM_PeriodElapsedCallback,"ax",%progbits
+ 265              		.align	1
+ 266              		.global	HAL_TIM_PeriodElapsedCallback
+ 267              		.syntax unified
+ 268              		.thumb
+ 269              		.thumb_func
+ 271              	HAL_TIM_PeriodElapsedCallback:
+ 272              	.LVL11:
+ 273              	.LFB71:
+ 316:Core/Src/main.c **** 
+ 317:Core/Src/main.c **** /* USER CODE BEGIN 4 */
+ 318:Core/Src/main.c **** void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+ 274              		.loc 1 318 61 is_stmt 1 view -0
+ 275              		.cfi_startproc
+ 276              		@ args = 0, pretend = 0, frame = 0
+ 277              		@ frame_needed = 0, uses_anonymous_args = 0
+ 278              		.loc 1 318 61 is_stmt 0 view .LVU65
+ 279 0000 08B5     		push	{r3, lr}
+ 280              	.LCFI6:
+ 281              		.cfi_def_cfa_offset 8
+ 282              		.cfi_offset 3, -8
+ 283              		.cfi_offset 14, -4
+ 319:Core/Src/main.c ****     if (htim->Instance == TIM2) {
+ 284              		.loc 1 319 5 is_stmt 1 view .LVU66
+ 285              		.loc 1 319 13 is_stmt 0 view .LVU67
+ 286 0002 0368     		ldr	r3, [r0]
+ 287              		.loc 1 319 8 view .LVU68
+ 288 0004 B3F1804F 		cmp	r3, #1073741824
+ 289 0008 00D0     		beq	.L16
+ 290              	.LVL12:
+ 291              	.L12:
+ 320:Core/Src/main.c ****         if (state == 0) { // Yanıp sönme durumu
+ 321:Core/Src/main.c ****             HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+ 322:Core/Src/main.c ****             toggle_count++;
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 12
+
+
+ 323:Core/Src/main.c ****             
+ 324:Core/Src/main.c ****             // LED 1 tam yanıp sönmesi için 2 kez toggle olmalı. 
+ 325:Core/Src/main.c ****             if (toggle_count >= (blink_count * 2)) {
+ 326:Core/Src/main.c ****                 state = 1; // 5 saniye bekleme durumuna geç
+ 327:Core/Src/main.c ****                 toggle_count = 0;
+ 328:Core/Src/main.c ****                 wait_seconds = 0;
+ 329:Core/Src/main.c ****                 HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET); // LED'i kapalı konuma al
+ 330:Core/Src/main.c ****             }
+ 331:Core/Src/main.c ****         } else if (state == 1) { // Bekleme durumu
+ 332:Core/Src/main.c ****             wait_seconds++;
+ 333:Core/Src/main.c ****             if (wait_seconds >= 5) {
+ 334:Core/Src/main.c ****                 state = 0; // Bekleme bitti, tekrar yanıp sönmeye başla
+ 335:Core/Src/main.c ****                 wait_seconds = 0;
+ 336:Core/Src/main.c ****             }
+ 337:Core/Src/main.c ****         }
+ 338:Core/Src/main.c ****     }
+ 339:Core/Src/main.c **** }
+ 292              		.loc 1 339 1 view .LVU69
+ 293 000a 08BD     		pop	{r3, pc}
+ 294              	.LVL13:
+ 295              	.L16:
+ 320:Core/Src/main.c ****         if (state == 0) { // Yanıp sönme durumu
+ 296              		.loc 1 320 9 is_stmt 1 view .LVU70
+ 320:Core/Src/main.c ****         if (state == 0) { // Yanıp sönme durumu
+ 297              		.loc 1 320 19 is_stmt 0 view .LVU71
+ 298 000c 184B     		ldr	r3, .L18
+ 299 000e 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 320:Core/Src/main.c ****         if (state == 0) { // Yanıp sönme durumu
+ 300              		.loc 1 320 12 view .LVU72
+ 301 0010 83B1     		cbz	r3, .L17
+ 331:Core/Src/main.c ****             wait_seconds++;
+ 302              		.loc 1 331 16 is_stmt 1 view .LVU73
+ 331:Core/Src/main.c ****             wait_seconds++;
+ 303              		.loc 1 331 26 is_stmt 0 view .LVU74
+ 304 0012 174B     		ldr	r3, .L18
+ 305 0014 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 331:Core/Src/main.c ****             wait_seconds++;
+ 306              		.loc 1 331 19 view .LVU75
+ 307 0016 012B     		cmp	r3, #1
+ 308 0018 F7D1     		bne	.L12
+ 332:Core/Src/main.c ****             if (wait_seconds >= 5) {
+ 309              		.loc 1 332 13 is_stmt 1 view .LVU76
+ 332:Core/Src/main.c ****             if (wait_seconds >= 5) {
+ 310              		.loc 1 332 25 is_stmt 0 view .LVU77
+ 311 001a 164B     		ldr	r3, .L18+4
+ 312 001c 1A68     		ldr	r2, [r3]
+ 313 001e 0132     		adds	r2, r2, #1
+ 314 0020 1A60     		str	r2, [r3]
+ 333:Core/Src/main.c ****                 state = 0; // Bekleme bitti, tekrar yanıp sönmeye başla
+ 315              		.loc 1 333 13 is_stmt 1 view .LVU78
+ 333:Core/Src/main.c ****                 state = 0; // Bekleme bitti, tekrar yanıp sönmeye başla
+ 316              		.loc 1 333 30 is_stmt 0 view .LVU79
+ 317 0022 1B68     		ldr	r3, [r3]
+ 333:Core/Src/main.c ****                 state = 0; // Bekleme bitti, tekrar yanıp sönmeye başla
+ 318              		.loc 1 333 16 view .LVU80
+ 319 0024 042B     		cmp	r3, #4
+ 320 0026 F0D9     		bls	.L12
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 13
+
+
+ 334:Core/Src/main.c ****                 wait_seconds = 0;
+ 321              		.loc 1 334 17 is_stmt 1 view .LVU81
+ 334:Core/Src/main.c ****                 wait_seconds = 0;
+ 322              		.loc 1 334 23 is_stmt 0 view .LVU82
+ 323 0028 0023     		movs	r3, #0
+ 324 002a 114A     		ldr	r2, .L18
+ 325 002c 1370     		strb	r3, [r2]
+ 335:Core/Src/main.c ****             }
+ 326              		.loc 1 335 17 is_stmt 1 view .LVU83
+ 335:Core/Src/main.c ****             }
+ 327              		.loc 1 335 30 is_stmt 0 view .LVU84
+ 328 002e 114A     		ldr	r2, .L18+4
+ 329 0030 1360     		str	r3, [r2]
+ 330              		.loc 1 339 1 view .LVU85
+ 331 0032 EAE7     		b	.L12
+ 332              	.L17:
+ 321:Core/Src/main.c ****             toggle_count++;
+ 333              		.loc 1 321 13 is_stmt 1 view .LVU86
+ 334 0034 4FF40051 		mov	r1, #8192
+ 335 0038 0F48     		ldr	r0, .L18+8
+ 336              	.LVL14:
+ 321:Core/Src/main.c ****             toggle_count++;
+ 337              		.loc 1 321 13 is_stmt 0 view .LVU87
+ 338 003a FFF7FEFF 		bl	HAL_GPIO_TogglePin
+ 339              	.LVL15:
+ 322:Core/Src/main.c ****             
+ 340              		.loc 1 322 13 is_stmt 1 view .LVU88
+ 322:Core/Src/main.c ****             
+ 341              		.loc 1 322 25 is_stmt 0 view .LVU89
+ 342 003e 0F4B     		ldr	r3, .L18+12
+ 343 0040 1A68     		ldr	r2, [r3]
+ 344 0042 0132     		adds	r2, r2, #1
+ 345 0044 1A60     		str	r2, [r3]
+ 325:Core/Src/main.c ****                 state = 1; // 5 saniye bekleme durumuna geç
+ 346              		.loc 1 325 13 is_stmt 1 view .LVU90
+ 325:Core/Src/main.c ****                 state = 1; // 5 saniye bekleme durumuna geç
+ 347              		.loc 1 325 46 is_stmt 0 view .LVU91
+ 348 0046 0E4A     		ldr	r2, .L18+16
+ 349 0048 1268     		ldr	r2, [r2]
+ 325:Core/Src/main.c ****                 state = 1; // 5 saniye bekleme durumuna geç
+ 350              		.loc 1 325 30 view .LVU92
+ 351 004a 1B68     		ldr	r3, [r3]
+ 325:Core/Src/main.c ****                 state = 1; // 5 saniye bekleme durumuna geç
+ 352              		.loc 1 325 16 view .LVU93
+ 353 004c B3EB420F 		cmp	r3, r2, lsl #1
+ 354 0050 DBD3     		bcc	.L12
+ 326:Core/Src/main.c ****                 toggle_count = 0;
+ 355              		.loc 1 326 17 is_stmt 1 view .LVU94
+ 326:Core/Src/main.c ****                 toggle_count = 0;
+ 356              		.loc 1 326 23 is_stmt 0 view .LVU95
+ 357 0052 0122     		movs	r2, #1
+ 358 0054 064B     		ldr	r3, .L18
+ 359 0056 1A70     		strb	r2, [r3]
+ 327:Core/Src/main.c ****                 wait_seconds = 0;
+ 360              		.loc 1 327 17 is_stmt 1 view .LVU96
+ 327:Core/Src/main.c ****                 wait_seconds = 0;
+ 361              		.loc 1 327 30 is_stmt 0 view .LVU97
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 14
+
+
+ 362 0058 0023     		movs	r3, #0
+ 363 005a 0849     		ldr	r1, .L18+12
+ 364 005c 0B60     		str	r3, [r1]
+ 328:Core/Src/main.c ****                 HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET); // LED'i kapalı konuma al
+ 365              		.loc 1 328 17 is_stmt 1 view .LVU98
+ 328:Core/Src/main.c ****                 HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET); // LED'i kapalı konuma al
+ 366              		.loc 1 328 30 is_stmt 0 view .LVU99
+ 367 005e 0549     		ldr	r1, .L18+4
+ 368 0060 0B60     		str	r3, [r1]
+ 329:Core/Src/main.c ****             }
+ 369              		.loc 1 329 17 is_stmt 1 view .LVU100
+ 370 0062 4FF40051 		mov	r1, #8192
+ 371 0066 0448     		ldr	r0, .L18+8
+ 372 0068 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 373              	.LVL16:
+ 374 006c CDE7     		b	.L12
+ 375              	.L19:
+ 376 006e 00BF     		.align	2
+ 377              	.L18:
+ 378 0070 00000000 		.word	state
+ 379 0074 00000000 		.word	wait_seconds
+ 380 0078 00100140 		.word	1073811456
+ 381 007c 00000000 		.word	toggle_count
+ 382 0080 00000000 		.word	blink_count
+ 383              		.cfi_endproc
+ 384              	.LFE71:
+ 386              		.section	.text.Error_Handler,"ax",%progbits
+ 387              		.align	1
+ 388              		.global	Error_Handler
+ 389              		.syntax unified
+ 390              		.thumb
+ 391              		.thumb_func
+ 393              	Error_Handler:
+ 394              	.LFB72:
+ 340:Core/Src/main.c **** /* USER CODE END 4 */
+ 341:Core/Src/main.c **** 
+ 342:Core/Src/main.c **** /**
+ 343:Core/Src/main.c ****   * @brief  This function is executed in case of error occurrence.
+ 344:Core/Src/main.c ****   * @retval None
+ 345:Core/Src/main.c ****   */
+ 346:Core/Src/main.c **** void Error_Handler(void)
+ 347:Core/Src/main.c **** {
+ 395              		.loc 1 347 1 view -0
+ 396              		.cfi_startproc
+ 397              		@ Volatile: function does not return.
+ 398              		@ args = 0, pretend = 0, frame = 0
+ 399              		@ frame_needed = 0, uses_anonymous_args = 0
+ 400              		@ link register save eliminated.
+ 348:Core/Src/main.c ****   /* USER CODE BEGIN Error_Handler_Debug */
+ 349:Core/Src/main.c ****   /* User can add his own implementation to report the HAL error return state */
+ 350:Core/Src/main.c ****   __disable_irq();
+ 401              		.loc 1 350 3 view .LVU102
+ 402              	.LBB6:
+ 403              	.LBI6:
+ 404              		.file 2 "Drivers/CMSIS/Include/cmsis_gcc.h"
+   1:Drivers/CMSIS/Include/cmsis_gcc.h **** /**************************************************************************//**
+   2:Drivers/CMSIS/Include/cmsis_gcc.h ****  * @file     cmsis_gcc.h
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 15
+
+
+   3:Drivers/CMSIS/Include/cmsis_gcc.h ****  * @brief    CMSIS compiler GCC header file
+   4:Drivers/CMSIS/Include/cmsis_gcc.h ****  * @version  V5.0.4
+   5:Drivers/CMSIS/Include/cmsis_gcc.h ****  * @date     09. April 2018
+   6:Drivers/CMSIS/Include/cmsis_gcc.h ****  ******************************************************************************/
+   7:Drivers/CMSIS/Include/cmsis_gcc.h **** /*
+   8:Drivers/CMSIS/Include/cmsis_gcc.h ****  * Copyright (c) 2009-2018 Arm Limited. All rights reserved.
+   9:Drivers/CMSIS/Include/cmsis_gcc.h ****  *
+  10:Drivers/CMSIS/Include/cmsis_gcc.h ****  * SPDX-License-Identifier: Apache-2.0
+  11:Drivers/CMSIS/Include/cmsis_gcc.h ****  *
+  12:Drivers/CMSIS/Include/cmsis_gcc.h ****  * Licensed under the Apache License, Version 2.0 (the License); you may
+  13:Drivers/CMSIS/Include/cmsis_gcc.h ****  * not use this file except in compliance with the License.
+  14:Drivers/CMSIS/Include/cmsis_gcc.h ****  * You may obtain a copy of the License at
+  15:Drivers/CMSIS/Include/cmsis_gcc.h ****  *
+  16:Drivers/CMSIS/Include/cmsis_gcc.h ****  * www.apache.org/licenses/LICENSE-2.0
+  17:Drivers/CMSIS/Include/cmsis_gcc.h ****  *
+  18:Drivers/CMSIS/Include/cmsis_gcc.h ****  * Unless required by applicable law or agreed to in writing, software
+  19:Drivers/CMSIS/Include/cmsis_gcc.h ****  * distributed under the License is distributed on an AS IS BASIS, WITHOUT
+  20:Drivers/CMSIS/Include/cmsis_gcc.h ****  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  21:Drivers/CMSIS/Include/cmsis_gcc.h ****  * See the License for the specific language governing permissions and
+  22:Drivers/CMSIS/Include/cmsis_gcc.h ****  * limitations under the License.
+  23:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
+  24:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+  25:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef __CMSIS_GCC_H
+  26:Drivers/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_H
+  27:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+  28:Drivers/CMSIS/Include/cmsis_gcc.h **** /* ignore some GCC warnings */
+  29:Drivers/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic push
+  30:Drivers/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wsign-conversion"
+  31:Drivers/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wconversion"
+  32:Drivers/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wunused-parameter"
+  33:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+  34:Drivers/CMSIS/Include/cmsis_gcc.h **** /* Fallback for __has_builtin */
+  35:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef __has_builtin
+  36:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __has_builtin(x) (0)
+  37:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  38:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+  39:Drivers/CMSIS/Include/cmsis_gcc.h **** /* CMSIS compiler specific defines */
+  40:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __ASM
+  41:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __ASM                                  __asm
+  42:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  43:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __INLINE
+  44:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __INLINE                               inline
+  45:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  46:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __STATIC_INLINE
+  47:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __STATIC_INLINE                        static inline
+  48:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  49:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __STATIC_FORCEINLINE                 
+  50:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __STATIC_FORCEINLINE                   __attribute__((always_inline)) static inline
+  51:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif                                           
+  52:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __NO_RETURN
+  53:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __NO_RETURN                            __attribute__((__noreturn__))
+  54:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  55:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __USED
+  56:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __USED                                 __attribute__((used))
+  57:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  58:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __WEAK
+  59:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __WEAK                                 __attribute__((weak))
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 16
+
+
+  60:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  61:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED
+  62:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __PACKED                               __attribute__((packed, aligned(1)))
+  63:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  64:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED_STRUCT
+  65:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __PACKED_STRUCT                        struct __attribute__((packed, aligned(1)))
+  66:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  67:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED_UNION
+  68:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __PACKED_UNION                         union __attribute__((packed, aligned(1)))
+  69:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  70:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32        /* deprecated */
+  71:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  72:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  73:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  74:Drivers/CMSIS/Include/cmsis_gcc.h ****   struct __attribute__((packed)) T_UINT32 { uint32_t v; };
+  75:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  76:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32(x)                  (((struct T_UINT32 *)(x))->v)
+  77:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  78:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT16_WRITE
+  79:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  80:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  81:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  82:Drivers/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT16_WRITE { uint16_t v; };
+  83:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  84:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT16_WRITE(addr, val)    (void)((((struct T_UINT16_WRITE *)(void *)(addr))-
+  85:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  86:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT16_READ
+  87:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  88:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  89:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  90:Drivers/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT16_READ { uint16_t v; };
+  91:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  92:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT16_READ(addr)          (((const struct T_UINT16_READ *)(const void *)(add
+  93:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+  94:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32_WRITE
+  95:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  96:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  97:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  98:Drivers/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT32_WRITE { uint32_t v; };
+  99:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+ 100:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32_WRITE(addr, val)    (void)((((struct T_UINT32_WRITE *)(void *)(addr))-
+ 101:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+ 102:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32_READ
+ 103:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+ 104:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+ 105:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+ 106:Drivers/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT32_READ { uint32_t v; };
+ 107:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+ 108:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32_READ(addr)          (((const struct T_UINT32_READ *)(const void *)(add
+ 109:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+ 110:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __ALIGNED
+ 111:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __ALIGNED(x)                           __attribute__((aligned(x)))
+ 112:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+ 113:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __RESTRICT
+ 114:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __RESTRICT                             __restrict
+ 115:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
+ 116:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 17
+
+
+ 117:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 118:Drivers/CMSIS/Include/cmsis_gcc.h **** /* ###########################  Core Function Access  ########################### */
+ 119:Drivers/CMSIS/Include/cmsis_gcc.h **** /** \ingroup  CMSIS_Core_FunctionInterface
+ 120:Drivers/CMSIS/Include/cmsis_gcc.h ****     \defgroup CMSIS_Core_RegAccFunctions CMSIS Core Register Access Functions
+ 121:Drivers/CMSIS/Include/cmsis_gcc.h ****   @{
+ 122:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
+ 123:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 124:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
+ 125:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   Enable IRQ Interrupts
+ 126:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Enables IRQ interrupts by clearing the I-bit in the CPSR.
+ 127:Drivers/CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ 128:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
+ 129:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __enable_irq(void)
+ 130:Drivers/CMSIS/Include/cmsis_gcc.h **** {
+ 131:Drivers/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsie i" : : : "memory");
+ 132:Drivers/CMSIS/Include/cmsis_gcc.h **** }
+ 133:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 134:Drivers/CMSIS/Include/cmsis_gcc.h **** 
+ 135:Drivers/CMSIS/Include/cmsis_gcc.h **** /**
+ 136:Drivers/CMSIS/Include/cmsis_gcc.h ****   \brief   Disable IRQ Interrupts
+ 137:Drivers/CMSIS/Include/cmsis_gcc.h ****   \details Disables IRQ interrupts by setting the I-bit in the CPSR.
+ 138:Drivers/CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ 139:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
+ 140:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __disable_irq(void)
+ 405              		.loc 2 140 27 view .LVU103
+ 406              	.LBB7:
+ 141:Drivers/CMSIS/Include/cmsis_gcc.h **** {
+ 142:Drivers/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsid i" : : : "memory");
+ 407              		.loc 2 142 3 view .LVU104
+ 408              		.syntax unified
+ 409              	@ 142 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
+ 410 0000 72B6     		cpsid i
+ 411              	@ 0 "" 2
+ 412              		.thumb
+ 413              		.syntax unified
+ 414              	.L21:
+ 415              	.LBE7:
+ 416              	.LBE6:
+ 351:Core/Src/main.c ****   while (1)
+ 417              		.loc 1 351 3 view .LVU105
+ 352:Core/Src/main.c ****   {
+ 353:Core/Src/main.c ****   }
+ 418              		.loc 1 353 3 view .LVU106
+ 351:Core/Src/main.c ****   while (1)
+ 419              		.loc 1 351 9 view .LVU107
+ 420 0002 FEE7     		b	.L21
+ 421              		.cfi_endproc
+ 422              	.LFE72:
+ 424              		.section	.text.MX_TIM2_Init,"ax",%progbits
+ 425              		.align	1
+ 426              		.syntax unified
+ 427              		.thumb
+ 428              		.thumb_func
+ 430              	MX_TIM2_Init:
+ 431              	.LFB69:
+ 231:Core/Src/main.c **** 
+ 432              		.loc 1 231 1 view -0
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 18
+
+
+ 433              		.cfi_startproc
+ 434              		@ args = 0, pretend = 0, frame = 24
+ 435              		@ frame_needed = 0, uses_anonymous_args = 0
+ 436 0000 00B5     		push	{lr}
+ 437              	.LCFI7:
+ 438              		.cfi_def_cfa_offset 4
+ 439              		.cfi_offset 14, -4
+ 440 0002 87B0     		sub	sp, sp, #28
+ 441              	.LCFI8:
+ 442              		.cfi_def_cfa_offset 32
+ 237:Core/Src/main.c ****   TIM_MasterConfigTypeDef sMasterConfig = {0};
+ 443              		.loc 1 237 3 view .LVU109
+ 237:Core/Src/main.c ****   TIM_MasterConfigTypeDef sMasterConfig = {0};
+ 444              		.loc 1 237 26 is_stmt 0 view .LVU110
+ 445 0004 0023     		movs	r3, #0
+ 446 0006 0293     		str	r3, [sp, #8]
+ 447 0008 0393     		str	r3, [sp, #12]
+ 448 000a 0493     		str	r3, [sp, #16]
+ 449 000c 0593     		str	r3, [sp, #20]
+ 238:Core/Src/main.c **** 
+ 450              		.loc 1 238 3 is_stmt 1 view .LVU111
+ 238:Core/Src/main.c **** 
+ 451              		.loc 1 238 27 is_stmt 0 view .LVU112
+ 452 000e 0093     		str	r3, [sp]
+ 453 0010 0193     		str	r3, [sp, #4]
+ 243:Core/Src/main.c ****   htim2.Init.Prescaler = 8000 - 1;
+ 454              		.loc 1 243 3 is_stmt 1 view .LVU113
+ 243:Core/Src/main.c ****   htim2.Init.Prescaler = 8000 - 1;
+ 455              		.loc 1 243 18 is_stmt 0 view .LVU114
+ 456 0012 1448     		ldr	r0, .L30
+ 457 0014 4FF08042 		mov	r2, #1073741824
+ 458 0018 0260     		str	r2, [r0]
+ 244:Core/Src/main.c ****   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+ 459              		.loc 1 244 3 is_stmt 1 view .LVU115
+ 244:Core/Src/main.c ****   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+ 460              		.loc 1 244 24 is_stmt 0 view .LVU116
+ 461 001a 41F63F72 		movw	r2, #7999
+ 462 001e 4260     		str	r2, [r0, #4]
+ 245:Core/Src/main.c ****   htim2.Init.Period = 1000 - 1;
+ 463              		.loc 1 245 3 is_stmt 1 view .LVU117
+ 245:Core/Src/main.c ****   htim2.Init.Period = 1000 - 1;
+ 464              		.loc 1 245 26 is_stmt 0 view .LVU118
+ 465 0020 8360     		str	r3, [r0, #8]
+ 246:Core/Src/main.c ****   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+ 466              		.loc 1 246 3 is_stmt 1 view .LVU119
+ 246:Core/Src/main.c ****   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+ 467              		.loc 1 246 21 is_stmt 0 view .LVU120
+ 468 0022 40F2E732 		movw	r2, #999
+ 469 0026 C260     		str	r2, [r0, #12]
+ 247:Core/Src/main.c ****   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+ 470              		.loc 1 247 3 is_stmt 1 view .LVU121
+ 247:Core/Src/main.c ****   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+ 471              		.loc 1 247 28 is_stmt 0 view .LVU122
+ 472 0028 0361     		str	r3, [r0, #16]
+ 248:Core/Src/main.c ****   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+ 473              		.loc 1 248 3 is_stmt 1 view .LVU123
+ 248:Core/Src/main.c ****   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 19
+
+
+ 474              		.loc 1 248 32 is_stmt 0 view .LVU124
+ 475 002a 8361     		str	r3, [r0, #24]
+ 249:Core/Src/main.c ****   {
+ 476              		.loc 1 249 3 is_stmt 1 view .LVU125
+ 249:Core/Src/main.c ****   {
+ 477              		.loc 1 249 7 is_stmt 0 view .LVU126
+ 478 002c FFF7FEFF 		bl	HAL_TIM_Base_Init
+ 479              	.LVL17:
+ 249:Core/Src/main.c ****   {
+ 480              		.loc 1 249 6 discriminator 1 view .LVU127
+ 481 0030 88B9     		cbnz	r0, .L27
+ 253:Core/Src/main.c ****   if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+ 482              		.loc 1 253 3 is_stmt 1 view .LVU128
+ 253:Core/Src/main.c ****   if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+ 483              		.loc 1 253 34 is_stmt 0 view .LVU129
+ 484 0032 4FF48053 		mov	r3, #4096
+ 485 0036 0293     		str	r3, [sp, #8]
+ 254:Core/Src/main.c ****   {
+ 486              		.loc 1 254 3 is_stmt 1 view .LVU130
+ 254:Core/Src/main.c ****   {
+ 487              		.loc 1 254 7 is_stmt 0 view .LVU131
+ 488 0038 02A9     		add	r1, sp, #8
+ 489 003a 0A48     		ldr	r0, .L30
+ 490 003c FFF7FEFF 		bl	HAL_TIM_ConfigClockSource
+ 491              	.LVL18:
+ 254:Core/Src/main.c ****   {
+ 492              		.loc 1 254 6 discriminator 1 view .LVU132
+ 493 0040 58B9     		cbnz	r0, .L28
+ 258:Core/Src/main.c ****   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+ 494              		.loc 1 258 3 is_stmt 1 view .LVU133
+ 258:Core/Src/main.c ****   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+ 495              		.loc 1 258 37 is_stmt 0 view .LVU134
+ 496 0042 0023     		movs	r3, #0
+ 497 0044 0093     		str	r3, [sp]
+ 259:Core/Src/main.c ****   if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+ 498              		.loc 1 259 3 is_stmt 1 view .LVU135
+ 259:Core/Src/main.c ****   if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+ 499              		.loc 1 259 33 is_stmt 0 view .LVU136
+ 500 0046 0193     		str	r3, [sp, #4]
+ 260:Core/Src/main.c ****   {
+ 501              		.loc 1 260 3 is_stmt 1 view .LVU137
+ 260:Core/Src/main.c ****   {
+ 502              		.loc 1 260 7 is_stmt 0 view .LVU138
+ 503 0048 6946     		mov	r1, sp
+ 504 004a 0648     		ldr	r0, .L30
+ 505 004c FFF7FEFF 		bl	HAL_TIMEx_MasterConfigSynchronization
+ 506              	.LVL19:
+ 260:Core/Src/main.c ****   {
+ 507              		.loc 1 260 6 discriminator 1 view .LVU139
+ 508 0050 28B9     		cbnz	r0, .L29
+ 268:Core/Src/main.c **** 
+ 509              		.loc 1 268 1 view .LVU140
+ 510 0052 07B0     		add	sp, sp, #28
+ 511              	.LCFI9:
+ 512              		.cfi_remember_state
+ 513              		.cfi_def_cfa_offset 4
+ 514              		@ sp needed
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 20
+
+
+ 515 0054 00BD     		pop	{pc}
+ 516              	.L27:
+ 517              	.LCFI10:
+ 518              		.cfi_restore_state
+ 251:Core/Src/main.c ****   }
+ 519              		.loc 1 251 5 is_stmt 1 view .LVU141
+ 520 0056 FFF7FEFF 		bl	Error_Handler
+ 521              	.LVL20:
+ 522              	.L28:
+ 256:Core/Src/main.c ****   }
+ 523              		.loc 1 256 5 view .LVU142
+ 524 005a FFF7FEFF 		bl	Error_Handler
+ 525              	.LVL21:
+ 526              	.L29:
+ 262:Core/Src/main.c ****   }
+ 527              		.loc 1 262 5 view .LVU143
+ 528 005e FFF7FEFF 		bl	Error_Handler
+ 529              	.LVL22:
+ 530              	.L31:
+ 531 0062 00BF     		.align	2
+ 532              	.L30:
+ 533 0064 00000000 		.word	htim2
+ 534              		.cfi_endproc
+ 535              	.LFE69:
+ 537              		.section	.text.SystemClock_Config,"ax",%progbits
+ 538              		.align	1
+ 539              		.global	SystemClock_Config
+ 540              		.syntax unified
+ 541              		.thumb
+ 542              		.thumb_func
+ 544              	SystemClock_Config:
+ 545              	.LFB68:
+ 194:Core/Src/main.c ****   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+ 546              		.loc 1 194 1 view -0
+ 547              		.cfi_startproc
+ 548              		@ args = 0, pretend = 0, frame = 64
+ 549              		@ frame_needed = 0, uses_anonymous_args = 0
+ 550 0000 10B5     		push	{r4, lr}
+ 551              	.LCFI11:
+ 552              		.cfi_def_cfa_offset 8
+ 553              		.cfi_offset 4, -8
+ 554              		.cfi_offset 14, -4
+ 555 0002 90B0     		sub	sp, sp, #64
+ 556              	.LCFI12:
+ 557              		.cfi_def_cfa_offset 72
+ 195:Core/Src/main.c ****   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+ 558              		.loc 1 195 3 view .LVU145
+ 195:Core/Src/main.c ****   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+ 559              		.loc 1 195 22 is_stmt 0 view .LVU146
+ 560 0004 06AC     		add	r4, sp, #24
+ 561 0006 2822     		movs	r2, #40
+ 562 0008 0021     		movs	r1, #0
+ 563 000a 2046     		mov	r0, r4
+ 564 000c FFF7FEFF 		bl	memset
+ 565              	.LVL23:
+ 196:Core/Src/main.c **** 
+ 566              		.loc 1 196 3 is_stmt 1 view .LVU147
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 21
+
+
+ 196:Core/Src/main.c **** 
+ 567              		.loc 1 196 22 is_stmt 0 view .LVU148
+ 568 0010 0023     		movs	r3, #0
+ 569 0012 0193     		str	r3, [sp, #4]
+ 570 0014 0293     		str	r3, [sp, #8]
+ 571 0016 0393     		str	r3, [sp, #12]
+ 572 0018 0493     		str	r3, [sp, #16]
+ 573 001a 0593     		str	r3, [sp, #20]
+ 201:Core/Src/main.c ****   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+ 574              		.loc 1 201 3 is_stmt 1 view .LVU149
+ 201:Core/Src/main.c ****   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+ 575              		.loc 1 201 36 is_stmt 0 view .LVU150
+ 576 001c 0223     		movs	r3, #2
+ 577 001e 0693     		str	r3, [sp, #24]
+ 202:Core/Src/main.c ****   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+ 578              		.loc 1 202 3 is_stmt 1 view .LVU151
+ 202:Core/Src/main.c ****   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+ 579              		.loc 1 202 30 is_stmt 0 view .LVU152
+ 580 0020 0123     		movs	r3, #1
+ 581 0022 0A93     		str	r3, [sp, #40]
+ 203:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+ 582              		.loc 1 203 3 is_stmt 1 view .LVU153
+ 203:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+ 583              		.loc 1 203 41 is_stmt 0 view .LVU154
+ 584 0024 1023     		movs	r3, #16
+ 585 0026 0B93     		str	r3, [sp, #44]
+ 204:Core/Src/main.c ****   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+ 586              		.loc 1 204 3 is_stmt 1 view .LVU155
+ 205:Core/Src/main.c ****   {
+ 587              		.loc 1 205 3 view .LVU156
+ 205:Core/Src/main.c ****   {
+ 588              		.loc 1 205 7 is_stmt 0 view .LVU157
+ 589 0028 2046     		mov	r0, r4
+ 590 002a FFF7FEFF 		bl	HAL_RCC_OscConfig
+ 591              	.LVL24:
+ 205:Core/Src/main.c ****   {
+ 592              		.loc 1 205 6 discriminator 1 view .LVU158
+ 593 002e 60B9     		cbnz	r0, .L36
+ 212:Core/Src/main.c ****                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+ 594              		.loc 1 212 3 is_stmt 1 view .LVU159
+ 212:Core/Src/main.c ****                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+ 595              		.loc 1 212 31 is_stmt 0 view .LVU160
+ 596 0030 0F23     		movs	r3, #15
+ 597 0032 0193     		str	r3, [sp, #4]
+ 214:Core/Src/main.c ****   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+ 598              		.loc 1 214 3 is_stmt 1 view .LVU161
+ 214:Core/Src/main.c ****   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+ 599              		.loc 1 214 34 is_stmt 0 view .LVU162
+ 600 0034 0021     		movs	r1, #0
+ 601 0036 0291     		str	r1, [sp, #8]
+ 215:Core/Src/main.c ****   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+ 602              		.loc 1 215 3 is_stmt 1 view .LVU163
+ 215:Core/Src/main.c ****   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+ 603              		.loc 1 215 35 is_stmt 0 view .LVU164
+ 604 0038 0391     		str	r1, [sp, #12]
+ 216:Core/Src/main.c ****   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+ 605              		.loc 1 216 3 is_stmt 1 view .LVU165
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 22
+
+
+ 216:Core/Src/main.c ****   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+ 606              		.loc 1 216 36 is_stmt 0 view .LVU166
+ 607 003a 0491     		str	r1, [sp, #16]
+ 217:Core/Src/main.c **** 
+ 608              		.loc 1 217 3 is_stmt 1 view .LVU167
+ 217:Core/Src/main.c **** 
+ 609              		.loc 1 217 36 is_stmt 0 view .LVU168
+ 610 003c 0591     		str	r1, [sp, #20]
+ 219:Core/Src/main.c ****   {
+ 611              		.loc 1 219 3 is_stmt 1 view .LVU169
+ 219:Core/Src/main.c ****   {
+ 612              		.loc 1 219 7 is_stmt 0 view .LVU170
+ 613 003e 01A8     		add	r0, sp, #4
+ 614 0040 FFF7FEFF 		bl	HAL_RCC_ClockConfig
+ 615              	.LVL25:
+ 219:Core/Src/main.c ****   {
+ 616              		.loc 1 219 6 discriminator 1 view .LVU171
+ 617 0044 18B9     		cbnz	r0, .L37
+ 223:Core/Src/main.c **** 
+ 618              		.loc 1 223 1 view .LVU172
+ 619 0046 10B0     		add	sp, sp, #64
+ 620              	.LCFI13:
+ 621              		.cfi_remember_state
+ 622              		.cfi_def_cfa_offset 8
+ 623              		@ sp needed
+ 624 0048 10BD     		pop	{r4, pc}
+ 625              	.L36:
+ 626              	.LCFI14:
+ 627              		.cfi_restore_state
+ 207:Core/Src/main.c ****   }
+ 628              		.loc 1 207 5 is_stmt 1 view .LVU173
+ 629 004a FFF7FEFF 		bl	Error_Handler
+ 630              	.LVL26:
+ 631              	.L37:
+ 221:Core/Src/main.c ****   }
+ 632              		.loc 1 221 5 view .LVU174
+ 633 004e FFF7FEFF 		bl	Error_Handler
+ 634              	.LVL27:
+ 635              		.cfi_endproc
+ 636              	.LFE68:
+ 638              		.section	.text.main,"ax",%progbits
+ 639              		.align	1
+ 640              		.global	main
+ 641              		.syntax unified
+ 642              		.thumb
+ 643              		.thumb_func
+ 645              	main:
+ 646              	.LFB67:
+  89:Core/Src/main.c **** 
+ 647              		.loc 1 89 1 view -0
+ 648              		.cfi_startproc
+ 649              		@ args = 0, pretend = 0, frame = 0
+ 650              		@ frame_needed = 0, uses_anonymous_args = 0
+ 651 0000 70B5     		push	{r4, r5, r6, lr}
+ 652              	.LCFI15:
+ 653              		.cfi_def_cfa_offset 16
+ 654              		.cfi_offset 4, -16
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 23
+
+
+ 655              		.cfi_offset 5, -12
+ 656              		.cfi_offset 6, -8
+ 657              		.cfi_offset 14, -4
+  98:Core/Src/main.c **** 
+ 658              		.loc 1 98 3 view .LVU176
+ 659 0002 FFF7FEFF 		bl	HAL_Init
+ 660              	.LVL28:
+ 105:Core/Src/main.c **** 
+ 661              		.loc 1 105 3 view .LVU177
+ 662 0006 FFF7FEFF 		bl	SystemClock_Config
+ 663              	.LVL29:
+ 112:Core/Src/main.c ****   MX_TIM2_Init();
+ 664              		.loc 1 112 3 view .LVU178
+ 665 000a FFF7FEFF 		bl	MX_GPIO_Init
+ 666              	.LVL30:
+ 113:Core/Src/main.c ****   /* USER CODE BEGIN 2 */
+ 667              		.loc 1 113 3 view .LVU179
+ 668 000e FFF7FEFF 		bl	MX_TIM2_Init
+ 669              	.LVL31:
+ 116:Core/Src/main.c **** 
+ 670              		.loc 1 116 3 view .LVU180
+ 116:Core/Src/main.c **** 
+ 671              		.loc 1 116 24 is_stmt 0 view .LVU181
+ 672 0012 FFF7FEFF 		bl	Read_From_Flash
+ 673              	.LVL32:
+ 674 0016 0446     		mov	r4, r0
+ 675              	.LVL33:
+ 119:Core/Src/main.c ****       uint32_t start_time = HAL_GetTick();
+ 676              		.loc 1 119 3 is_stmt 1 view .LVU182
+ 119:Core/Src/main.c ****       uint32_t start_time = HAL_GetTick();
+ 677              		.loc 1 119 7 is_stmt 0 view .LVU183
+ 678 0018 0121     		movs	r1, #1
+ 679 001a 3948     		ldr	r0, .L56
+ 680              	.LVL34:
+ 119:Core/Src/main.c ****       uint32_t start_time = HAL_GetTick();
+ 681              		.loc 1 119 7 view .LVU184
+ 682 001c FFF7FEFF 		bl	HAL_GPIO_ReadPin
+ 683              	.LVL35:
+ 119:Core/Src/main.c ****       uint32_t start_time = HAL_GetTick();
+ 684              		.loc 1 119 6 discriminator 1 view .LVU185
+ 685 0020 40B1     		cbz	r0, .L53
+ 147:Core/Src/main.c ****           blink_count = 4;
+ 686              		.loc 1 147 7 is_stmt 1 view .LVU186
+ 147:Core/Src/main.c ****           blink_count = 4;
+ 687              		.loc 1 147 25 is_stmt 0 view .LVU187
+ 688 0022 231F     		subs	r3, r4, #4
+ 147:Core/Src/main.c ****           blink_count = 4;
+ 689              		.loc 1 147 10 view .LVU188
+ 690 0024 032B     		cmp	r3, #3
+ 691 0026 32D8     		bhi	.L54
+ 151:Core/Src/main.c ****       }
+ 692              		.loc 1 151 11 is_stmt 1 view .LVU189
+ 151:Core/Src/main.c ****       }
+ 693              		.loc 1 151 23 is_stmt 0 view .LVU190
+ 694 0028 364B     		ldr	r3, .L56+4
+ 695 002a 1C60     		str	r4, [r3]
+ 696              	.L44:
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 24
+
+
+ 156:Core/Src/main.c **** /* USER CODE END 2 */
+ 697              		.loc 1 156 3 is_stmt 1 view .LVU191
+ 698 002c 3648     		ldr	r0, .L56+8
+ 699 002e FFF7FEFF 		bl	HAL_TIM_Base_Start_IT
+ 700              	.LVL36:
+ 701 0032 44E0     		b	.L47
+ 702              	.L53:
+ 703 0034 0546     		mov	r5, r0
+ 704              	.LBB8:
+ 120:Core/Src/main.c ****       uint8_t factory_reset = 0;
+ 705              		.loc 1 120 7 view .LVU192
+ 120:Core/Src/main.c ****       uint8_t factory_reset = 0;
+ 706              		.loc 1 120 29 is_stmt 0 view .LVU193
+ 707 0036 FFF7FEFF 		bl	HAL_GetTick
+ 708              	.LVL37:
+ 709 003a 0646     		mov	r6, r0
+ 710              	.LVL38:
+ 121:Core/Src/main.c ****       
+ 711              		.loc 1 121 7 is_stmt 1 view .LVU194
+ 124:Core/Src/main.c ****           if (HAL_GetTick() - start_time >= 3000) { // 3 saniye dolduysa
+ 712              		.loc 1 124 7 view .LVU195
+ 713              	.L40:
+ 124:Core/Src/main.c ****           if (HAL_GetTick() - start_time >= 3000) { // 3 saniye dolduysa
+ 714              		.loc 1 124 50 view .LVU196
+ 124:Core/Src/main.c ****           if (HAL_GetTick() - start_time >= 3000) { // 3 saniye dolduysa
+ 715              		.loc 1 124 14 is_stmt 0 view .LVU197
+ 716 003c 0121     		movs	r1, #1
+ 717 003e 3048     		ldr	r0, .L56
+ 718 0040 FFF7FEFF 		bl	HAL_GPIO_ReadPin
+ 719              	.LVL39:
+ 124:Core/Src/main.c ****           if (HAL_GetTick() - start_time >= 3000) { // 3 saniye dolduysa
+ 720              		.loc 1 124 50 discriminator 1 view .LVU198
+ 721 0044 70B9     		cbnz	r0, .L43
+ 125:Core/Src/main.c ****               blink_count = 4;
+ 722              		.loc 1 125 11 is_stmt 1 view .LVU199
+ 125:Core/Src/main.c ****               blink_count = 4;
+ 723              		.loc 1 125 15 is_stmt 0 view .LVU200
+ 724 0046 FFF7FEFF 		bl	HAL_GetTick
+ 725              	.LVL40:
+ 125:Core/Src/main.c ****               blink_count = 4;
+ 726              		.loc 1 125 29 discriminator 1 view .LVU201
+ 727 004a 831B     		subs	r3, r0, r6
+ 125:Core/Src/main.c ****               blink_count = 4;
+ 728              		.loc 1 125 14 discriminator 1 view .LVU202
+ 729 004c 40F6B732 		movw	r2, #2999
+ 730 0050 9342     		cmp	r3, r2
+ 731 0052 F3D9     		bls	.L40
+ 126:Core/Src/main.c ****               Save_To_Flash(blink_count);
+ 732              		.loc 1 126 15 is_stmt 1 view .LVU203
+ 126:Core/Src/main.c ****               Save_To_Flash(blink_count);
+ 733              		.loc 1 126 27 is_stmt 0 view .LVU204
+ 734 0054 2B4B     		ldr	r3, .L56+4
+ 735 0056 0422     		movs	r2, #4
+ 736 0058 1A60     		str	r2, [r3]
+ 127:Core/Src/main.c ****               factory_reset = 1;
+ 737              		.loc 1 127 15 is_stmt 1 view .LVU205
+ 738 005a 1868     		ldr	r0, [r3]
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 25
+
+
+ 739 005c FFF7FEFF 		bl	Save_To_Flash
+ 740              	.LVL41:
+ 128:Core/Src/main.c ****               break; // 3 saniye dolunca döngüden çık
+ 741              		.loc 1 128 15 view .LVU206
+ 129:Core/Src/main.c ****           }
+ 742              		.loc 1 129 15 view .LVU207
+ 128:Core/Src/main.c ****               break; // 3 saniye dolunca döngüden çık
+ 743              		.loc 1 128 29 is_stmt 0 view .LVU208
+ 744 0060 0123     		movs	r3, #1
+ 745 0062 1D46     		mov	r5, r3
+ 746              	.LVL42:
+ 747              	.L43:
+ 134:Core/Src/main.c ****       
+ 748              		.loc 1 134 50 is_stmt 1 discriminator 1 view .LVU209
+ 134:Core/Src/main.c ****       
+ 749              		.loc 1 134 14 is_stmt 0 discriminator 1 view .LVU210
+ 750 0064 0121     		movs	r1, #1
+ 751 0066 2648     		ldr	r0, .L56
+ 752 0068 FFF7FEFF 		bl	HAL_GPIO_ReadPin
+ 753              	.LVL43:
+ 134:Core/Src/main.c ****       
+ 754              		.loc 1 134 50 discriminator 1 view .LVU211
+ 755 006c 0028     		cmp	r0, #0
+ 756 006e F9D0     		beq	.L43
+ 137:Core/Src/main.c ****           if (flash_val > 7 || flash_val < 4) {
+ 757              		.loc 1 137 7 is_stmt 1 view .LVU212
+ 137:Core/Src/main.c ****           if (flash_val > 7 || flash_val < 4) {
+ 758              		.loc 1 137 10 is_stmt 0 view .LVU213
+ 759 0070 002D     		cmp	r5, #0
+ 760 0072 DBD1     		bne	.L44
+ 138:Core/Src/main.c ****               blink_count = 4;
+ 761              		.loc 1 138 11 is_stmt 1 view .LVU214
+ 138:Core/Src/main.c ****               blink_count = 4;
+ 762              		.loc 1 138 29 is_stmt 0 view .LVU215
+ 763 0074 231F     		subs	r3, r4, #4
+ 138:Core/Src/main.c ****               blink_count = 4;
+ 764              		.loc 1 138 14 view .LVU216
+ 765 0076 032B     		cmp	r3, #3
+ 766 0078 02D8     		bhi	.L55
+ 142:Core/Src/main.c ****           }
+ 767              		.loc 1 142 15 is_stmt 1 view .LVU217
+ 142:Core/Src/main.c ****           }
+ 768              		.loc 1 142 27 is_stmt 0 view .LVU218
+ 769 007a 224B     		ldr	r3, .L56+4
+ 770 007c 1C60     		str	r4, [r3]
+ 771 007e D5E7     		b	.L44
+ 772              	.L55:
+ 139:Core/Src/main.c ****               Save_To_Flash(blink_count);
+ 773              		.loc 1 139 15 is_stmt 1 view .LVU219
+ 139:Core/Src/main.c ****               Save_To_Flash(blink_count);
+ 774              		.loc 1 139 27 is_stmt 0 view .LVU220
+ 775 0080 204B     		ldr	r3, .L56+4
+ 776 0082 0422     		movs	r2, #4
+ 777 0084 1A60     		str	r2, [r3]
+ 140:Core/Src/main.c ****           } else {
+ 778              		.loc 1 140 15 is_stmt 1 view .LVU221
+ 779 0086 1868     		ldr	r0, [r3]
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 26
+
+
+ 780 0088 FFF7FEFF 		bl	Save_To_Flash
+ 781              	.LVL44:
+ 782 008c CEE7     		b	.L44
+ 783              	.LVL45:
+ 784              	.L54:
+ 140:Core/Src/main.c ****           } else {
+ 785              		.loc 1 140 15 is_stmt 0 view .LVU222
+ 786              	.LBE8:
+ 148:Core/Src/main.c ****           Save_To_Flash(blink_count);
+ 787              		.loc 1 148 11 is_stmt 1 view .LVU223
+ 148:Core/Src/main.c ****           Save_To_Flash(blink_count);
+ 788              		.loc 1 148 23 is_stmt 0 view .LVU224
+ 789 008e 1D4B     		ldr	r3, .L56+4
+ 790 0090 0422     		movs	r2, #4
+ 791 0092 1A60     		str	r2, [r3]
+ 149:Core/Src/main.c ****       } else {
+ 792              		.loc 1 149 11 is_stmt 1 view .LVU225
+ 793 0094 1868     		ldr	r0, [r3]
+ 794 0096 FFF7FEFF 		bl	Save_To_Flash
+ 795              	.LVL46:
+ 796 009a C7E7     		b	.L44
+ 797              	.L50:
+ 176:Core/Src/main.c ****             
+ 798              		.loc 1 176 13 view .LVU226
+ 799 009c 194B     		ldr	r3, .L56+4
+ 800 009e 1868     		ldr	r0, [r3]
+ 801 00a0 FFF7FEFF 		bl	Save_To_Flash
+ 802              	.LVL47:
+ 179:Core/Src/main.c ****             wait_seconds = 0;
+ 803              		.loc 1 179 13 view .LVU227
+ 179:Core/Src/main.c ****             wait_seconds = 0;
+ 804              		.loc 1 179 26 is_stmt 0 view .LVU228
+ 805 00a4 0023     		movs	r3, #0
+ 806 00a6 194A     		ldr	r2, .L56+12
+ 807 00a8 1360     		str	r3, [r2]
+ 180:Core/Src/main.c ****             state = 0;
+ 808              		.loc 1 180 13 is_stmt 1 view .LVU229
+ 180:Core/Src/main.c ****             state = 0;
+ 809              		.loc 1 180 26 is_stmt 0 view .LVU230
+ 810 00aa 194A     		ldr	r2, .L56+16
+ 811 00ac 1360     		str	r3, [r2]
+ 181:Core/Src/main.c ****             HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET); // LED'i söndür
+ 812              		.loc 1 181 13 is_stmt 1 view .LVU231
+ 181:Core/Src/main.c ****             HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET); // LED'i söndür
+ 813              		.loc 1 181 19 is_stmt 0 view .LVU232
+ 814 00ae 194A     		ldr	r2, .L56+20
+ 815 00b0 1370     		strb	r3, [r2]
+ 182:Core/Src/main.c ****         }
+ 816              		.loc 1 182 13 is_stmt 1 view .LVU233
+ 817 00b2 0122     		movs	r2, #1
+ 818 00b4 4FF40051 		mov	r1, #8192
+ 819 00b8 1748     		ldr	r0, .L56+24
+ 820 00ba FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 821              	.LVL48:
+ 822              	.L47:
+ 161:Core/Src/main.c ****   {
+ 823              		.loc 1 161 3 view .LVU234
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 27
+
+
+ 166:Core/Src/main.c ****         HAL_Delay(50); // Dalgalanmayı önlemek için Debounce
+ 824              		.loc 1 166 5 view .LVU235
+ 166:Core/Src/main.c ****         HAL_Delay(50); // Dalgalanmayı önlemek için Debounce
+ 825              		.loc 1 166 9 is_stmt 0 view .LVU236
+ 826 00be 0121     		movs	r1, #1
+ 827 00c0 0F48     		ldr	r0, .L56
+ 828 00c2 FFF7FEFF 		bl	HAL_GPIO_ReadPin
+ 829              	.LVL49:
+ 166:Core/Src/main.c ****         HAL_Delay(50); // Dalgalanmayı önlemek için Debounce
+ 830              		.loc 1 166 8 discriminator 1 view .LVU237
+ 831 00c6 0028     		cmp	r0, #0
+ 832 00c8 F9D1     		bne	.L47
+ 167:Core/Src/main.c ****         
+ 833              		.loc 1 167 9 is_stmt 1 view .LVU238
+ 834 00ca 3220     		movs	r0, #50
+ 835 00cc FFF7FEFF 		bl	HAL_Delay
+ 836              	.LVL50:
+ 169:Core/Src/main.c ****             
+ 837              		.loc 1 169 9 view .LVU239
+ 169:Core/Src/main.c ****             
+ 838              		.loc 1 169 13 is_stmt 0 view .LVU240
+ 839 00d0 0121     		movs	r1, #1
+ 840 00d2 0B48     		ldr	r0, .L56
+ 841 00d4 FFF7FEFF 		bl	HAL_GPIO_ReadPin
+ 842              	.LVL51:
+ 169:Core/Src/main.c ****             
+ 843              		.loc 1 169 12 discriminator 1 view .LVU241
+ 844 00d8 0028     		cmp	r0, #0
+ 845 00da F0D1     		bne	.L47
+ 846              	.L49:
+ 172:Core/Src/main.c ****             
+ 847              		.loc 1 172 56 is_stmt 1 discriminator 1 view .LVU242
+ 172:Core/Src/main.c ****             
+ 848              		.loc 1 172 20 is_stmt 0 discriminator 1 view .LVU243
+ 849 00dc 0121     		movs	r1, #1
+ 850 00de 0848     		ldr	r0, .L56
+ 851 00e0 FFF7FEFF 		bl	HAL_GPIO_ReadPin
+ 852              	.LVL52:
+ 172:Core/Src/main.c ****             
+ 853              		.loc 1 172 56 discriminator 1 view .LVU244
+ 854 00e4 0028     		cmp	r0, #0
+ 855 00e6 F9D0     		beq	.L49
+ 174:Core/Src/main.c ****             if (blink_count > 7) blink_count = 4;
+ 856              		.loc 1 174 13 is_stmt 1 view .LVU245
+ 174:Core/Src/main.c ****             if (blink_count > 7) blink_count = 4;
+ 857              		.loc 1 174 24 is_stmt 0 view .LVU246
+ 858 00e8 064B     		ldr	r3, .L56+4
+ 859 00ea 1A68     		ldr	r2, [r3]
+ 860 00ec 0132     		adds	r2, r2, #1
+ 861 00ee 1A60     		str	r2, [r3]
+ 175:Core/Src/main.c ****             Save_To_Flash(blink_count);
+ 862              		.loc 1 175 13 is_stmt 1 view .LVU247
+ 175:Core/Src/main.c ****             Save_To_Flash(blink_count);
+ 863              		.loc 1 175 29 is_stmt 0 view .LVU248
+ 864 00f0 1B68     		ldr	r3, [r3]
+ 175:Core/Src/main.c ****             Save_To_Flash(blink_count);
+ 865              		.loc 1 175 16 view .LVU249
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 28
+
+
+ 866 00f2 072B     		cmp	r3, #7
+ 867 00f4 D2D9     		bls	.L50
+ 175:Core/Src/main.c ****             Save_To_Flash(blink_count);
+ 868              		.loc 1 175 34 is_stmt 1 discriminator 1 view .LVU250
+ 175:Core/Src/main.c ****             Save_To_Flash(blink_count);
+ 869              		.loc 1 175 46 is_stmt 0 discriminator 1 view .LVU251
+ 870 00f6 034B     		ldr	r3, .L56+4
+ 871 00f8 0422     		movs	r2, #4
+ 872 00fa 1A60     		str	r2, [r3]
+ 873 00fc CEE7     		b	.L50
+ 874              	.L57:
+ 875 00fe 00BF     		.align	2
+ 876              	.L56:
+ 877 0100 00080140 		.word	1073809408
+ 878 0104 00000000 		.word	blink_count
+ 879 0108 00000000 		.word	htim2
+ 880 010c 00000000 		.word	toggle_count
+ 881 0110 00000000 		.word	wait_seconds
+ 882 0114 00000000 		.word	state
+ 883 0118 00100140 		.word	1073811456
+ 884              		.cfi_endproc
+ 885              	.LFE67:
+ 887              		.global	state
+ 888              		.section	.bss.state,"aw",%nobits
+ 891              	state:
+ 892 0000 00       		.space	1
+ 893              		.global	wait_seconds
+ 894              		.section	.bss.wait_seconds,"aw",%nobits
+ 895              		.align	2
+ 898              	wait_seconds:
+ 899 0000 00000000 		.space	4
+ 900              		.global	toggle_count
+ 901              		.section	.bss.toggle_count,"aw",%nobits
+ 902              		.align	2
+ 905              	toggle_count:
+ 906 0000 00000000 		.space	4
+ 907              		.global	blink_count
+ 908              		.section	.data.blink_count,"aw"
+ 909              		.align	2
+ 912              	blink_count:
+ 913 0000 04000000 		.word	4
+ 914              		.global	htim2
+ 915              		.section	.bss.htim2,"aw",%nobits
+ 916              		.align	2
+ 919              	htim2:
+ 920 0000 00000000 		.space	72
+ 920      00000000 
+ 920      00000000 
+ 920      00000000 
+ 920      00000000 
+ 921              		.text
+ 922              	.Letext0:
+ 923              		.file 3 "C:\\ST\\STM32CubeCLT_1.21.0\\GNU-tools-for-STM32\\bin\\../lib/gcc/arm-none-eabi/14.3.1/..
+ 924              		.file 4 "C:\\ST\\STM32CubeCLT_1.21.0\\GNU-tools-for-STM32\\bin\\../lib/gcc/arm-none-eabi/14.3.1/..
+ 925              		.file 5 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xb.h"
+ 926              		.file 6 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h"
+ 927              		.file 7 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc.h"
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 29
+
+
+ 928              		.file 8 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc_ex.h"
+ 929              		.file 9 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio.h"
+ 930              		.file 10 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma.h"
+ 931              		.file 11 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h"
+ 932              		.file 12 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h"
+ 933              		.file 13 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h"
+ 934              		.file 14 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h"
+ 935              		.file 15 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash.h"
+ 936              		.file 16 "<built-in>"
+ARM GAS  C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s 			page 30
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 main.c
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:19     .text.MX_GPIO_Init:00000000 $t
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:24     .text.MX_GPIO_Init:00000000 MX_GPIO_Init
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:156    .text.MX_GPIO_Init:00000098 $d
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:163    .text.Save_To_Flash:00000000 $t
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:169    .text.Save_To_Flash:00000000 Save_To_Flash
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:233    .text.Save_To_Flash:00000034 $d
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:238    .text.Read_From_Flash:00000000 $t
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:244    .text.Read_From_Flash:00000000 Read_From_Flash
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:260    .text.Read_From_Flash:00000008 $d
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:265    .text.HAL_TIM_PeriodElapsedCallback:00000000 $t
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:271    .text.HAL_TIM_PeriodElapsedCallback:00000000 HAL_TIM_PeriodElapsedCallback
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:378    .text.HAL_TIM_PeriodElapsedCallback:00000070 $d
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:891    .bss.state:00000000 state
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:898    .bss.wait_seconds:00000000 wait_seconds
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:905    .bss.toggle_count:00000000 toggle_count
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:912    .data.blink_count:00000000 blink_count
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:387    .text.Error_Handler:00000000 $t
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:393    .text.Error_Handler:00000000 Error_Handler
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:425    .text.MX_TIM2_Init:00000000 $t
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:430    .text.MX_TIM2_Init:00000000 MX_TIM2_Init
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:533    .text.MX_TIM2_Init:00000064 $d
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:919    .bss.htim2:00000000 htim2
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:538    .text.SystemClock_Config:00000000 $t
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:544    .text.SystemClock_Config:00000000 SystemClock_Config
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:639    .text.main:00000000 $t
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:645    .text.main:00000000 main
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:877    .text.main:00000100 $d
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:892    .bss.state:00000000 $d
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:895    .bss.wait_seconds:00000000 $d
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:902    .bss.toggle_count:00000000 $d
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:909    .data.blink_count:00000000 $d
+C:\Users\Acer\AppData\Local\Temp\ccFlOBVR.s:916    .bss.htim2:00000000 $d
+
+UNDEFINED SYMBOLS
+HAL_GPIO_WritePin
+HAL_GPIO_Init
+HAL_FLASH_Unlock
+HAL_FLASHEx_Erase
+HAL_FLASH_Program
+HAL_FLASH_Lock
+HAL_GPIO_TogglePin
+HAL_TIM_Base_Init
+HAL_TIM_ConfigClockSource
+HAL_TIMEx_MasterConfigSynchronization
+memset
+HAL_RCC_OscConfig
+HAL_RCC_ClockConfig
+HAL_Init
+HAL_GPIO_ReadPin
+HAL_TIM_Base_Start_IT
+HAL_GetTick
+HAL_Delay
